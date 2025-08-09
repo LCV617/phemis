@@ -188,9 +188,7 @@ def stream_response(provider: OpenRouterProvider, chat_session: ChatSession) -> 
         )
         
         # Afficher la réponse en temps réel avec Rich Live
-        with Live(console=console, refresh_per_second=10) as live:
-            accumulated_text = ""
-            
+        with Live(console=console, refresh_per_second=10) as live:            
             for chunk in stream_generator:
                 # Vérifier si l'utilisateur a interrompu
                 signal.signal(signal.SIGINT, signal_handler)
@@ -202,8 +200,11 @@ def stream_response(provider: OpenRouterProvider, chat_session: ChatSession) -> 
                     if 'delta' in choice and 'content' in choice['delta']:
                         content_piece = choice['delta']['content']
                         if content_piece:
+                            # Ne collecter que les nouveaux chunks individuels
                             content_buffer.append(content_piece)
-                            accumulated_text += content_piece
+                            
+                            # Reconstruire le texte complet depuis les chunks
+                            accumulated_text = ''.join(content_buffer)
                             
                             # Afficher le markdown accumulé
                             markdown = Markdown(accumulated_text)

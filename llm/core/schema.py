@@ -51,8 +51,8 @@ class ModelInfo(BaseModel):
     """Modèle représentant les informations d'un modèle LLM."""
     id: str = Field(..., description="Identifiant unique du modèle")
     context_length: Optional[int] = Field(None, ge=1, description="Longueur maximale du contexte en tokens")
-    pricing_prompt: Optional[float] = Field(None, ge=0, description="Prix par token de prompt (en USD)")
-    pricing_completion: Optional[float] = Field(None, ge=0, description="Prix par token de completion (en USD)")
+    pricing_prompt: Optional[float] = Field(None, description="Prix par token de prompt (en USD)")
+    pricing_completion: Optional[float] = Field(None, description="Prix par token de completion (en USD)")
     description: Optional[str] = Field(None, description="Description du modèle")
 
     @field_validator('id')

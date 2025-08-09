@@ -103,19 +103,30 @@ def stream_chat_response(
             stream=True
         )
         
-        # Traiter chaque chunk
-        for chunk in stream:
-            # Extraire le contenu
-            content = extract_content_from_chunk(chunk)
-            if content:
-                response.add_chunk(content)
-                # Afficher le contenu en temps réel sans nouvelle ligne
-                console.print(content, end='', highlight=False)
-            
-            # Vérifier si c'est le dernier chunk avec les métadonnées
-            usage = extract_usage_from_chunk(chunk)
-            if usage:
-                response.finalize(usage)
+        # Utiliser Rich Live pour un affichage cohérent
+        from rich.live import Live
+        from rich.markdown import Markdown
+        
+        accumulated_content = []
+        
+        with Live(console=console, refresh_per_second=10) as live:
+            # Traiter chaque chunk
+            for chunk in stream:
+                # Extraire le contenu
+                content = extract_content_from_chunk(chunk)
+                if content:
+                    response.add_chunk(content)
+                    accumulated_content.append(content)
+                    
+                    # Afficher le contenu accumulé en markdown
+                    full_text = ''.join(accumulated_content)
+                    markdown = Markdown(full_text)
+                    live.update(markdown)
+                
+                # Vérifier si c'est le dernier chunk avec les métadonnées
+                usage = extract_usage_from_chunk(chunk)
+                if usage:
+                    response.finalize(usage)
                 
     except Exception as e:
         response.finalize()

@@ -44,7 +44,7 @@ class OpenRouterProvider:
     Gère l'authentification, les appels API et les erreurs pour OpenRouter.
     """
     
-    BASE_URL = "https://openrouter.ai/api/v1"
+    BASE_URL = "https://openrouter.ai/api/v1/"
     DEFAULT_TIMEOUT = 60
     
     def __init__(
@@ -96,7 +96,8 @@ class OpenRouterProvider:
         """
         headers = {
             "Authorization": f"Bearer {self.api_key}",
-            "Content-Type": "application/json",
+            "Content-Type": "application/json; charset=utf-8",
+            "Accept": "text/event-stream; charset=utf-8",
         }
         
         # Ajouter les headers configurés au niveau de la classe
@@ -153,7 +154,7 @@ class OpenRouterProvider:
         Raises:
             OpenRouterError: En cas d'erreur API
         """
-        url = urljoin(self.BASE_URL, "/models")
+        url = urljoin(self.BASE_URL, "models")
         headers = self._get_headers()
         
         try:
@@ -232,7 +233,7 @@ class OpenRouterProvider:
         Raises:
             OpenRouterError: En cas d'erreur API
         """
-        url = urljoin(self.BASE_URL, "/chat/completions")
+        url = urljoin(self.BASE_URL, "chat/completions")
         headers = self._get_headers(extra_headers)
         
         # Préparer les messages au format API OpenRouter
@@ -309,7 +310,17 @@ class OpenRouterProvider:
         self._handle_response_error(response)
         
         try:
-            for line in response.iter_lines(decode_unicode=True):
+            # Utiliser decode_unicode=False pour gérer l'encoding manuellement
+            for line_bytes in response.iter_lines(decode_unicode=False):
+                if not line_bytes:
+                    continue
+                
+                # Décoder manuellement en UTF-8
+                try:
+                    line = line_bytes.decode('utf-8')
+                except UnicodeDecodeError:
+                    # Fallback si le décodage UTF-8 échoue
+                    line = line_bytes.decode('iso-8859-1', errors='replace')
                 if not line:
                     continue
                     
